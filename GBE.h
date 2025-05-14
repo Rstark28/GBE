@@ -7,20 +7,13 @@
 #ifndef GBE_H
 #define GBE_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-/* ===== Type Definitions ===== */
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef int8_t i8;
-typedef int16_t i16;
-typedef int32_t i32;
-
-/* ===== Memory Constants ===== */
-// Memory Map
+/****************************
+ * Memory Map Constants
+ ****************************/
 #define ROM_BANK_0_START 0x0000
 #define ROM_BANK_0_END 0x3FFF
 #define ROM_BANK_N_START 0x4000
@@ -43,7 +36,6 @@ typedef int32_t i32;
 #define HRAM_END 0xFFFE
 #define IE_REGISTER 0xFFFF
 
-// Memory Sizes
 #define ROM_BANK_SIZE 0x4000
 #define VRAM_SIZE 0x2000
 #define WRAM_SIZE 0x2000
@@ -51,8 +43,9 @@ typedef int32_t i32;
 #define IO_SIZE 0x80
 #define HRAM_SIZE 0x7F
 
-/* ===== CPU Registers ===== */
-// Register pairs
+/****************************
+ * CPU Register Constants
+ ****************************/
 #define REG_AF 0
 #define REG_BC 1
 #define REG_DE 2
@@ -66,14 +59,15 @@ typedef int32_t i32;
 #define FLAG_H 5 // Half carry flag
 #define FLAG_C 4 // Carry flag
 
-/* ===== PPU Constants ===== */
+/****************************
+ * PPU Constants
+ ****************************/
 #define SCREEN_WIDTH 160
 #define SCREEN_HEIGHT 144
 #define TILE_SIZE 8
 #define TILES_PER_LINE 20
 #define LINES_PER_FRAME 144
 
-// PPU Modes
 typedef enum {
         PPU_MODE_HBLANK = 0,
         PPU_MODE_VBLANK = 1,
@@ -81,14 +75,18 @@ typedef enum {
         PPU_MODE_VRAM = 3
 } PPU_Mode;
 
-/* ===== Interrupt Vectors ===== */
+/****************************
+ * Interrupt Constants
+ ****************************/
 #define INT_VBLANK 0x40
 #define INT_LCD 0x48
 #define INT_TIMER 0x50
 #define INT_SERIAL 0x58
 #define INT_JOYPAD 0x60
 
-/* ===== I/O Register Addresses ===== */
+/****************************
+ * I/O Register Constants
+ ****************************/
 #define REG_JOYP 0xFF00 // Joypad
 #define REG_SB 0xFF01   // Serial transfer data
 #define REG_SC 0xFF02   // Serial transfer control
@@ -111,23 +109,39 @@ typedef enum {
 #define REG_WX 0xFF4B   // Window X position
 #define REG_IE 0xFFFF   // Interrupt enable
 
-/* ===== Core Structures ===== */
-
-// CPU Structure
+/****************************
+ * CPU Structure
+ *
+ * uint8_t a: Accumulator
+ * uint8_t f: Flags
+ * uint8_t b: General purpose register B
+ * uint8_t c: General purpose register C
+ * uint8_t d: General purpose register D
+ * uint8_t e: General purpose register E
+ * uint8_t h: General purpose register H
+ * uint8_t l: General purpose register L
+ *
+ * uint16_t pc: Program Counter
+ * uint16_t sp: Stack Pointer
+ *
+ * bool halted: CPU halted state
+ * bool ime: Interrupt Master Enable
+ * int cycles: Number of cycles since last instruction
+ ****************************/
 typedef struct {
         // 8-bit registers
-        u8 a; // Accumulator
-        u8 f; // Flags
-        u8 b;
-        u8 c;
-        u8 d;
-        u8 e;
-        u8 h;
-        u8 l;
+        uint8_t a; // Accumulator
+        uint8_t f; // Flags
+        uint8_t b;
+        uint8_t c;
+        uint8_t d;
+        uint8_t e;
+        uint8_t h;
+        uint8_t l;
 
         // 16-bit registers
-        u16 pc; // Program Counter
-        u16 sp; // Stack Pointer
+        uint16_t pc; // Program Counter
+        uint16_t sp; // Stack Pointer
 
         // CPU state
         bool halted;
@@ -135,53 +149,106 @@ typedef struct {
         int cycles;
 } GBE_CPU;
 
-// PPU Structure
+/*****************************
+ * PPU Structure
+ *
+ * uint8_t lcdc: LCD Control
+ * uint8_t stat: LCD Status
+ * uint8_t scy: Scroll Y
+ * uint8_t scx: Scroll X
+ * uint8_t ly: LCD Y Coordinate
+ * uint8_t lyc: LY Compare
+ * uint8_t bgp: BG Palette Data
+ * uint8_t obp0: Object Palette 0
+ * uint8_t obp1: Object Palette 1
+ * uint8_t wy: Window Y Position
+ * uint8_t wx: Window X Position
+ *
+ * PPU_Mode mode: Current PPU mode (HBLANK, VBLANK, OAM, VRAM)
+ * int mode_clock: Clock cycles in current mode
+ * uint8_t* framebuffer: Pointer to the framebuffer for rendering
+ ****************************/
 typedef struct {
         // Registers
-        u8 lcdc; // LCD Control
-        u8 stat; // LCD Status
-        u8 scy;  // Scroll Y
-        u8 scx;  // Scroll X
-        u8 ly;   // LCD Y Coordinate
-        u8 lyc;  // LY Compare
-        u8 bgp;  // BG Palette Data
-        u8 obp0; // Object Palette 0
-        u8 obp1; // Object Palette 1
-        u8 wy;   // Window Y Position
-        u8 wx;   // Window X Position
+        uint8_t lcdc; // LCD Control
+        uint8_t stat; // LCD Status
+        uint8_t scy;  // Scroll Y
+        uint8_t scx;  // Scroll X
+        uint8_t ly;   // LCD Y Coordinate
+        uint8_t lyc;  // LY Compare
+        uint8_t bgp;  // BG Palette Data
+        uint8_t obp0; // Object Palette 0
+        uint8_t obp1; // Object Palette 1
+        uint8_t wy;   // Window Y Position
+        uint8_t wx;   // Window X Position
 
         // Internal state
         PPU_Mode mode;
         int mode_clock;
-        u8 *framebuffer;
+        uint8_t *framebuffer;
 } GBE_PPU;
 
-// Memory Structure
+/****************************
+ * Memory Structure
+ *
+ * uint8_t* rom: Pointer to ROM banks
+ * uint8_t* vram: Pointer to Video RAM
+ * uint8_t* wram: Pointer to Work RAM
+ * uint8_t* oam: Pointer to Object Attribute Memory
+ * uint8_t* hram: Pointer to High RAM
+ * uint8_t* io: Pointer to I/O registers
+ *
+ * uint8_t current_rom_bank: Current ROM bank number
+ * uint8_t current_ram_bank: Current RAM bank number
+ * bool ram_enabled: Flag indicating if RAM is enabled
+ ****************************/
 typedef struct {
-        u8 *rom;  // ROM banks
-        u8 *vram; // Video RAM
-        u8 *wram; // Work RAM
-        u8 *oam;  // Object Attribute Memory
-        u8 *hram; // High RAM
-        u8 *io;   // I/O registers
+        uint8_t *rom;  // ROM banks
+        uint8_t *vram; // Video RAM
+        uint8_t *wram; // Work RAM
+        uint8_t *oam;  // Object Attribute Memory
+        uint8_t *hram; // High RAM
+        uint8_t *io;   // I/O registers
 
         // Memory banking
-        u8 current_rom_bank;
-        u8 current_ram_bank;
+        uint8_t current_rom_bank;
+        uint8_t current_ram_bank;
         bool ram_enabled;
 } GBE_Memory;
 
+/****************************
+ * Cartridge Structure
+ *
+ * uint8_t* data: Pointer to cartridge data
+ * uint32_t size: Size of the cartridge data
+ * uint8_t type: Cartridge type (MBC1, MBC2, etc.)
+ * uint8_t rom_banks: Number of ROM banks
+ * uint8_t ram_banks: Number of RAM banks
+ * bool has_battery: Flag indicating if the cartridge has a battery
+ ****************************/
 // Cartridge Structure
 typedef struct {
-        u8 *data;
-        u32 size;
-        u8 type;
-        u8 rom_banks;
-        u8 ram_banks;
+        uint8_t *data;
+        uint32_t size;
+        uint8_t type;
+        uint8_t rom_banks;
+        uint8_t ram_banks;
         bool has_battery;
 } GBE_Cartridge;
 
-// Main Emulator Structure
+/****************************
+ * Emulator Structure
+ *
+ * GBE_CPU* cpu: Pointer to the CPU structure
+ * GBE_PPU* ppu: Pointer to the PPU structure
+ * GBE_Memory* memory: Pointer to the Memory structure
+ * GBE_Cartridge* cartridge: Pointer to the Cartridge structure
+ * SDL_Window* window: Pointer to the SDL window
+ * SDL_Renderer* renderer: Pointer to the SDL renderer
+ * SDL_Texture* texture: Pointer to the SDL texture
+ * bool running: Flag indicating if the emulator is running
+ * uint32_t cycles: Number of cycles since last frame
+ ****************************/
 typedef struct {
         GBE_CPU *cpu;
         GBE_PPU *ppu;
@@ -191,22 +258,19 @@ typedef struct {
         SDL_Renderer *renderer;
         SDL_Texture *texture;
         bool running;
-        u32 cycles;
+        uint32_t cycles;
 } GBE_Emulator;
-
-/* ===== Function Declarations ===== */
 
 // Core Emulator Functions
 GBE_Emulator *GBE_Create(void);
 void GBE_Destroy(GBE_Emulator *emu);
 bool GBE_LoadROM(GBE_Emulator *emu, const char *rom_path);
-void GBE_Run(GBE_Emulator *emu);
 void GBE_Step(GBE_Emulator *emu);
 
 // CPU Functions
 void GBE_CPU_Init(GBE_CPU *cpu);
 void GBE_CPU_Step(GBE_CPU *cpu, GBE_Memory *memory);
-void GBE_CPU_HandleInterrupt(GBE_CPU *cpu, GBE_Memory *memory, u8 interrupt);
+void GBE_CPU_HandleInterrupt(GBE_CPU *cpu, GBE_Memory *memory, uint8_t interrupt);
 
 // PPU Functions
 void GBE_PPU_Init(GBE_PPU *ppu);
@@ -215,8 +279,8 @@ void GBE_PPU_RenderScanline(GBE_PPU *ppu, GBE_Memory *memory);
 
 // Memory Functions
 bool GBE_Memory_Init(GBE_Memory *memory);
-u8 GBE_Memory_Read(GBE_Memory *memory, u16 address);
-void GBE_Memory_Write(GBE_Memory *memory, u16 address, u8 value);
+uint8_t GBE_Memory_Read(GBE_Memory *memory, uint16_t address);
+void GBE_Memory_Write(GBE_Memory *memory, uint16_t address, uint8_t value);
 void GBE_Memory_Cleanup(GBE_Memory *memory);
 
 // Cartridge Functions
@@ -224,9 +288,9 @@ bool GBE_Cartridge_Load(GBE_Cartridge *cart, const char *path);
 void GBE_Cartridge_Cleanup(GBE_Cartridge *cart);
 
 // Utility Functions
-u8 GBE_GetFlag(GBE_CPU *cpu, u8 flag);
-void GBE_SetFlag(GBE_CPU *cpu, u8 flag, bool value);
-u16 GBE_GetRegisterPair(GBE_CPU *cpu, u8 pair);
-void GBE_SetRegisterPair(GBE_CPU *cpu, u8 pair, u16 value);
+uint8_t GBE_GetFlag(GBE_CPU *cpu, uint8_t flag);
+void GBE_SetFlag(GBE_CPU *cpu, uint8_t flag, bool value);
+uint16_t GBE_GetRegisterPair(GBE_CPU *cpu, uint8_t pair);
+void GBE_SetRegisterPair(GBE_CPU *cpu, uint8_t pair, uint16_t value);
 
 #endif // GBE_H

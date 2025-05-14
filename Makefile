@@ -1,8 +1,8 @@
 CC      := gcc
 CFLAGS  := -Os $(shell sdl2-config --cflags)
 LDFLAGS := $(shell sdl2-config --libs) -lm
-SRCS    := main.c GBE.c audio.c
-OBJS    := $(SRCS:.c=.o)
+SRCS    := main.c GBE.c
+OBJS    := GBE.o $(SRCS:.c=.o)
 TARGET  := GBE
 
 all: $(TARGET)
